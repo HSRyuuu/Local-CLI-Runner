@@ -1,0 +1,297 @@
+basePath: /api/v1
+definitions:
+  api.ConnectorListResponse:
+    properties:
+      connectors:
+        example:
+        - claude
+        - gemini
+        items:
+          type: string
+        type: array
+      count:
+        example: 2
+        type: integer
+    type: object
+  api.ErrorResponse:
+    properties:
+      details:
+        example: connector is required
+        type: string
+      error:
+        example: Invalid request body
+        type: string
+    type: object
+  api.MessageResponse:
+    properties:
+      message:
+        example: Process deleted successfully
+        type: string
+    type: object
+  api.ProcessListResponse:
+    properties:
+      count:
+        example: 5
+        type: integer
+      processes:
+        items:
+          $ref: '#/definitions/api.ProcessStatus'
+        type: array
+    type: object
+  api.ProcessResult:
+    properties:
+      error:
+        type: string
+      exitCode:
+        example: 0
+        type: integer
+      output:
+        type: string
+    type: object
+  api.ProcessStatus:
+    properties:
+      completedAt:
+        example: "2024-01-01T12:01:00Z"
+        type: string
+      connector:
+        example: claude
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      prompt:
+        example: Hello
+        type: string
+      startedAt:
+        example: "2024-01-01T12:00:00Z"
+        type: string
+      status:
+        example: running
+        type: string
+      workDir:
+        example: /path/to/project
+        type: string
+    type: object
+  api.RunRequest:
+    properties:
+      connector:
+        example: claude
+        type: string
+      prompt:
+        example: Hello, how are you?
+        type: string
+      workDir:
+        example: /path/to/project
+        type: string
+    required:
+    - connector
+    - prompt
+    type: object
+  api.RunResponse:
+    properties:
+      processId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+    type: object
+host: localhost:3001
+info:
+  contact:
+    email: support@example.com
+    name: API Support
+  description: AI CLI (Claude, Gemini) 실행 및 SSE 스트리밍 서비스
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: CLI Runner API
+  version: "1.0"
+paths:
+  /connectors:
+    get:
+      description: 사용 가능한 AI CLI 커넥터 목록을 조회합니다
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 커넥터 목록
+          schema:
+            $ref: '#/definitions/api.ConnectorListResponse'
+      summary: 사용 가능한 커넥터 목록
+      tags:
+      - connector
+  /process/{id}:
+    delete:
+      description: 실행 중인 프로세스를 종료하고 삭제합니다
+      parameters:
+      - description: 프로세스 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 삭제 성공
+          schema:
+            $ref: '#/definitions/api.MessageResponse'
+        "400":
+          description: 삭제 실패
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "404":
+          description: 프로세스를 찾을 수 없음
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: 프로세스 종료 및 삭제
+      tags:
+      - process
+    get:
+      description: 특정 프로세스의 상태를 조회합니다
+      parameters:
+      - description: 프로세스 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 프로세스 상태
+          schema:
+            $ref: '#/definitions/api.ProcessStatus'
+        "404":
+          description: 프로세스를 찾을 수 없음
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: 프로세스 상태 조회
+      tags:
+      - process
+  /processes:
+    get:
+      description: 모든 프로세스의 목록을 조회합니다
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 프로세스 목록
+          schema:
+            $ref: '#/definitions/api.ProcessListResponse'
+      summary: 프로세스 목록 조회
+      tags:
+      - process
+  /result-data/{id}:
+    get:
+      description: 10분간 메모리에 저장된 result 이벤트 데이터를 조회합니다
+      parameters:
+      - description: 프로세스 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Result 데이터
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: 프로세스를 찾을 수 없거나 데이터가 만료됨
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: 캐시된 result 데이터 조회
+      tags:
+      - process
+  /result/{id}:
+    get:
+      description: 완료된 프로세스의 결과를 조회합니다
+      parameters:
+      - description: 프로세스 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 프로세스 결과
+          schema:
+            $ref: '#/definitions/api.ProcessResult'
+        "202":
+          description: 프로세스 실행 중
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: 프로세스를 찾을 수 없음
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: 프로세스 결과 조회
+      tags:
+      - process
+  /run:
+    post:
+      consumes:
+      - application/json
+      description: AI CLI 프로세스를 실행하고 processId를 반환합니다
+      parameters:
+      - description: 실행 요청
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.RunRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: 프로세스가 생성됨
+          schema:
+            $ref: '#/definitions/api.RunResponse'
+        "400":
+          description: 잘못된 요청
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "429":
+          description: 최대 동시 실행 수 초과
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: 서버 오류
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: 프로세스 실행
+      tags:
+      - process
+  /stream/{id}:
+    get:
+      description: 프로세스의 실시간 이벤트를 SSE로 스트리밍합니다
+      parameters:
+      - description: 프로세스 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - text/event-stream
+      responses:
+        "200":
+          description: SSE 이벤트 스트림
+          schema:
+            type: string
+        "404":
+          description: 프로세스를 찾을 수 없음
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: SSE 스트림 구독
+      tags:
+      - stream
+schemes:
+- http
+- https
+swagger: "2.0"

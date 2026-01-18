@@ -1,0 +1,25 @@
+server:
+  port: 3001
+  host: "0.0.0.0"
+  readTimeout: 5s
+  writeTimeout: 0     # SSE는 타임아웃 없음
+
+process:
+  defaultTimeout: 1800s     # 30분
+  maxConcurrent: 10
+  cleanupDelay: 300s        # 5분
+  bufferSize: 1000          # 이벤트 버퍼
+
+connectors:
+  claude:
+    command: "claude"
+    args:
+      - "--dangerously-skip-permissions"
+      - "--output-format"
+      - "stream-json"
+      - "--verbose"
+    available: true
+
+logging:
+  level: "info"
+  format: "json"

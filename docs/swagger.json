@@ -1,0 +1,442 @@
+{
+    "schemes": [
+        "http",
+        "https"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "AI CLI (Claude, Gemini) 실행 및 SSE 스트리밍 서비스",
+        "title": "CLI Runner API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "email": "support@example.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:3001",
+    "basePath": "/api/v1",
+    "paths": {
+        "/connectors": {
+            "get": {
+                "description": "사용 가능한 AI CLI 커넥터 목록을 조회합니다",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "connector"
+                ],
+                "summary": "사용 가능한 커넥터 목록",
+                "responses": {
+                    "200": {
+                        "description": "커넥터 목록",
+                        "schema": {
+                            "$ref": "#/definitions/api.ConnectorListResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/process/{id}": {
+            "get": {
+                "description": "특정 프로세스의 상태를 조회합니다",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "process"
+                ],
+                "summary": "프로세스 상태 조회",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "프로세스 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "프로세스 상태",
+                        "schema": {
+                            "$ref": "#/definitions/api.ProcessStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "프로세스를 찾을 수 없음",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "실행 중인 프로세스를 종료하고 삭제합니다",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "process"
+                ],
+                "summary": "프로세스 종료 및 삭제",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "프로세스 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "삭제 성공",
+                        "schema": {
+                            "$ref": "#/definitions/api.MessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "삭제 실패",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "프로세스를 찾을 수 없음",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/processes": {
+            "get": {
+                "description": "모든 프로세스의 목록을 조회합니다",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "process"
+                ],
+                "summary": "프로세스 목록 조회",
+                "responses": {
+                    "200": {
+                        "description": "프로세스 목록",
+                        "schema": {
+                            "$ref": "#/definitions/api.ProcessListResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/result-data/{id}": {
+            "get": {
+                "description": "10분간 메모리에 저장된 result 이벤트 데이터를 조회합니다",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "process"
+                ],
+                "summary": "캐시된 result 데이터 조회",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "프로세스 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Result 데이터",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "프로세스를 찾을 수 없거나 데이터가 만료됨",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/result/{id}": {
+            "get": {
+                "description": "완료된 프로세스의 결과를 조회합니다",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "process"
+                ],
+                "summary": "프로세스 결과 조회",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "프로세스 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "프로세스 결과",
+                        "schema": {
+                            "$ref": "#/definitions/api.ProcessResult"
+                        }
+                    },
+                    "202": {
+                        "description": "프로세스 실행 중",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "프로세스를 찾을 수 없음",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/run": {
+            "post": {
+                "description": "AI CLI 프로세스를 실행하고 processId를 반환합니다",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "process"
+                ],
+                "summary": "프로세스 실행",
+                "parameters": [
+                    {
+                        "description": "실행 요청",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.RunRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "프로세스가 생성됨",
+                        "schema": {
+                            "$ref": "#/definitions/api.RunResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "잘못된 요청",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "최대 동시 실행 수 초과",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "서버 오류",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stream/{id}": {
+            "get": {
+                "description": "프로세스의 실시간 이벤트를 SSE로 스트리밍합니다",
+                "produces": [
+                    "text/event-stream"
+                ],
+                "tags": [
+                    "stream"
+                ],
+                "summary": "SSE 스트림 구독",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "프로세스 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SSE 이벤트 스트림",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "프로세스를 찾을 수 없음",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "api.ConnectorListResponse": {
+            "type": "object",
+            "properties": {
+                "connectors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "claude",
+                        "gemini"
+                    ]
+                },
+                "count": {
+                    "type": "integer",
+                    "example": 2
+                }
+            }
+        },
+        "api.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "details": {
+                    "type": "string",
+                    "example": "connector is required"
+                },
+                "error": {
+                    "type": "string",
+                    "example": "Invalid request body"
+                }
+            }
+        },
+        "api.MessageResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Process deleted successfully"
+                }
+            }
+        },
+        "api.ProcessListResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "processes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api.ProcessStatus"
+                    }
+                }
+            }
+        },
+        "api.ProcessResult": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "exitCode": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "output": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.ProcessStatus": {
+            "type": "object",
+            "properties": {
+                "completedAt": {
+                    "type": "string",
+                    "example": "2024-01-01T12:01:00Z"
+                },
+                "connector": {
+                    "type": "string",
+                    "example": "claude"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "prompt": {
+                    "type": "string",
+                    "example": "Hello"
+                },
+                "startedAt": {
+                    "type": "string",
+                    "example": "2024-01-01T12:00:00Z"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "running"
+                },
+                "workDir": {
+                    "type": "string",
+                    "example": "/path/to/project"
+                }
+            }
+        },
+        "api.RunRequest": {
+            "type": "object",
+            "required": [
+                "connector",
+                "prompt"
+            ],
+            "properties": {
+                "connector": {
+                    "type": "string",
+                    "example": "claude"
+                },
+                "prompt": {
+                    "type": "string",
+                    "example": "Hello, how are you?"
+                },
+                "workDir": {
+                    "type": "string",
+                    "example": "/path/to/project"
+                }
+            }
+        },
+        "api.RunResponse": {
+            "type": "object",
+            "properties": {
+                "processId": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                }
+            }
+        }
+    }
+}
