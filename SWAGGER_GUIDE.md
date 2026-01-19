@@ -78,7 +78,7 @@ docs/
 
 서버 실행 후:
 ```
-http://localhost:3001/swagger/index.html
+http://localhost:4001/swagger/index.html
 ```
 
 ---

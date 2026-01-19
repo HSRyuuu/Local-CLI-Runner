@@ -93,7 +93,7 @@ definitions:
         example: 550e8400-e29b-41d4-a716-446655440000
         type: string
     type: object
-host: localhost:3001
+host: localhost:4001
 info:
   contact:
     email: support@example.com

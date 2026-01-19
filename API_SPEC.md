@@ -1,6 +1,6 @@
 # API 명세
 
-**Base URL**: `http://localhost:3001/api/v1`
+**Base URL**: `http://localhost:4001/api/v1`
 
 ---
 

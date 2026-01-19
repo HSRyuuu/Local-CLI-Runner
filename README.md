@@ -55,8 +55,8 @@ make clean    # 빌드 파일 삭제
 
 ## 🔗 추가 리소스
 
-- **Swagger UI**: `http://localhost:3001/swagger/index.html` (서버 실행 후)
-- **Health Check**: `http://localhost:3001/health`
+- **Swagger UI**: `http://localhost:4001/swagger/index.html` (서버 실행 후)
+- **Health Check**: `http://localhost:4001/health`
 
 ## ⚙️ 설정
 
@@ -64,6 +64,6 @@ make clean    # 빌드 파일 삭제
 
 | 설정 | 기본값 | 설명 |
 |------|--------|------|
-| `server.port` | 3001 | 서버 포트 |
+| `server.port` | 4001 | 서버 포트 |
 | `process.maxConcurrent` | 10 | 최대 동시 실행 수 |
 | `process.defaultTimeout` | 30분 | 프로세스 타임아웃 |

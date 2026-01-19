@@ -16,7 +16,7 @@ CLI Runner를 이용한 AI CLI 요청 흐름 가이드입니다.
 ## Step 1: 프로세스 실행
 
 ```bash
-curl -X POST http://localhost:3001/api/v1/run \
+curl -X POST http://localhost:4001/api/v1/run \
   -H "Content-Type: application/json" \
   -d '{
     "connector": "claude",
@@ -36,7 +36,7 @@ curl -X POST http://localhost:3001/api/v1/run \
 ## Step 2: SSE 스트림 구독
 
 ```bash
-curl -N http://localhost:3001/api/v1/stream/abc123-def456-...
+curl -N http://localhost:4001/api/v1/stream/abc123-def456-...
 ```
 
 **스트림 출력 예시**
@@ -78,7 +78,7 @@ es.addEventListener('done', () => {
 SSE 연결이 끊기거나 `result` 이벤트를 놓친 경우:
 
 ```bash
-curl http://localhost:3001/api/v1/result-data/abc123-def456-...
+curl http://localhost:4001/api/v1/result-data/abc123-def456-...
 ```
 
 > ⚠️ Result 데이터는 **10분간**만 캐시됩니다.
@@ -89,27 +89,27 @@ curl http://localhost:3001/api/v1/result-data/abc123-def456-...
 
 ### 프로세스 상태 확인
 ```bash
-curl http://localhost:3001/api/v1/process/abc123-def456-...
+curl http://localhost:4001/api/v1/process/abc123-def456-...
 ```
 
 ### 프로세스 목록 조회
 ```bash
-curl http://localhost:3001/api/v1/processes
+curl http://localhost:4001/api/v1/processes
 ```
 
 ### 프로세스 강제 종료
 ```bash
-curl -X DELETE http://localhost:3001/api/v1/process/abc123-def456-...
+curl -X DELETE http://localhost:4001/api/v1/process/abc123-def456-...
 ```
 
 ### 사용 가능한 커넥터 확인
 ```bash
-curl http://localhost:3001/api/v1/connectors
+curl http://localhost:4001/api/v1/connectors
 ```
 
 ### 작업 디렉토리 지정
 ```bash
-curl -X POST http://localhost:3001/api/v1/run \
+curl -X POST http://localhost:4001/api/v1/run \
   -H "Content-Type: application/json" \
   -d '{
     "connector": "claude",

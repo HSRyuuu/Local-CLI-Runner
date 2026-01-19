@@ -18,7 +18,7 @@
         },
         "version": "1.0"
     },
-    "host": "localhost:3001",
+    "host": "localhost:4001",
     "basePath": "/api/v1",
     "paths": {
         "/connectors": {

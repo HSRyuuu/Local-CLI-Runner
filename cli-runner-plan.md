@@ -169,7 +169,7 @@ func (rb *RingBuffer[T]) ToSlice() []T
 ```yaml
 # config.yaml
 server:
-  port: 3001
+  port: 4001
   host: "0.0.0.0"
   readTimeout: 5s
   writeTimeout: 0     # SSE는 타임아웃 없음
